@@ -21,8 +21,8 @@ Database.prototype.connect = function (dbFile) {
   var db = new sqlite3.Database(dbFile);
   db.serialize(function() {
     if(!exists) {
-      db.run("CREATE TABLE files (id TEXT PRIMARY KEY, title TEXT, filePath TEXT, dateAdded DATETIME DEFAULT CURRENT_TIMESTAMP)");
-      db.run("CREATE TABLE tags (tag TEXT, file_id TEXT, FOREIGN KEY(file_id) REFERENCES Files(id))");
+      db.run("CREATE TABLE files (id TEXT PRIMARY KEY, title TEXT, artist TEXT, filePath TEXT, dateAdded DATETIME DEFAULT CURRENT_TIMESTAMP)");
+      db.run("CREATE TABLE tags (tag TEXT, id TEXT, FOREIGN KEY(id) REFERENCES Files(id))");
     }
   });
   this.db = db;
@@ -57,7 +57,7 @@ Database.prototype.getFileTags = function (id, callback) {
     return;
   } 
   var results = new Array(); 
-  this.db.each("SELECT tag FROM tags WHERE file_id = ?", id , 
+  this.db.each("SELECT tag FROM tags WHERE id = ?", id , 
   function (err, row) {
     if (err) {
       callback(err);
@@ -81,7 +81,7 @@ Database.prototype.getRecentFiles = function (callback) {
   } 
 
   var results = new Array(); 
-  this.db.each("SELECT id, title FROM files WHERE (julianday('now') - julianday(dateAdded)) < 8;",[],
+  this.db.each("SELECT id, title, artist FROM files WHERE (julianday('now') - julianday(dateAdded)) < 8;",[],
   function (err, row) {
     if (err) {
       callback(err);
@@ -110,7 +110,10 @@ Database.prototype.getTagList = function (callback) {
     if (err) {
       callback(err);
     } else {
-      results.push(row.tag);
+      var endTag = row.tag;
+
+      endTag = endTag.replace(/%2F/gi,"/");
+      results.push(endTag);
     }
   }, 
   function (err, count) {
@@ -131,7 +134,8 @@ Database.prototype.getTagsFiles = function (tag, callback) {
   var results = new Array(); 
   tag = tag.toUpperCase();
   tag = tag.replace(/_|%20/gi," ");
-  this.db.each("SELECT file_id, files.title FROM tags JOIN files ON tags.file_id = files.id WHERE UPPER(tag) = ?", tag,
+  tag = tag.replace(/\//gi,"%2F");
+  this.db.each("SELECT files.id, files.title, files.artist FROM tags JOIN files ON tags.id = files.id WHERE UPPER(tag) = ?", tag,
   function (err, row) {
     if (err) {
       callback(err);
@@ -155,8 +159,8 @@ Database.prototype.addFile = function (fileData, callback) {
     return;
   }
 
-  this.db.run("INSERT INTO files (id, filePath, title) VALUES (?, ?, ?)",
-         [fileData.hash, fileData.path, fileData.title], function (err) {
+  this.db.run("INSERT INTO files (id, filePath, title, artist) VALUES (?, ?, ?, ?)",
+         [fileData.hash, fileData.path, fileData.title, fileData.artist], function (err) {
     if (err) {
       callback(err);
       return;
@@ -171,9 +175,10 @@ Database.prototype.addTagToFile = function (tag, fileid, callback) {
     return;
   }
   tag = tag.replace(/_|%20/gi," ");
+  tag = tag.replace(/\//gi,"%2F");
 
 
-  this.db.run("INSERT INTO tags (tag, file_id) VALUES (?, ?)",
+  this.db.run("INSERT INTO tags (tag, id) VALUES (?, ?)",
          [tag, fileid], function (err) {
     if (err) {
       callback(err);
@@ -191,7 +196,7 @@ Database.prototype.removeTagFromFile = function (tag, fileid, callback) {
   var db = this.db;
   tag = tag.replace(/_|%20/gi," ");
   tag = tag.toUpperCase();
-  db.run("DELETE FROM tags WHERE UPPER(tag) = ? AND file_id = ?",
+  db.run("DELETE FROM tags WHERE UPPER(tag) = ? AND id = ?",
          [tag, fileid], function (err) {
     if (err) {
       callback(err);
@@ -225,7 +230,7 @@ Database.prototype.removeFile = function (fileid, callback) {
       }
     }
     db.parallelize(function () {
-      db.run("DELETE FROM tags WHERE file_id = ?",
+      db.run("DELETE FROM tags WHERE id = ?",
              fileid, function (err) {
         if (err) {
           callback(err);

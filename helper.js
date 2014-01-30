@@ -49,8 +49,14 @@ module.exports = {
       } else {
         if (!data.artist) {
           data.artist = "Unsorted";
-        }  
+        } 
+        if (!data.title) {
+          var pos = fileData.filename.lastIndexOf(".");
+
+          data.title = fileData.filename.substring(0, pos);
+        }
         fileData.title = data.title;
+        fileData.artist = data.artist;
         tags.push(data.artist);
         console.log("File Data: " + JSON.stringify(fileData));
         var dest = path.join(__dirname, "files", data.artist);
