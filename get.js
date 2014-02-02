@@ -35,7 +35,7 @@ module.exports.resolve = function (splitURL, response) {
                     'content-type': 'application/json', 
                 });
 
-                response.end(JSON.stringify(data));
+                response.end(JSON.stringify({result : data}));
 
               }
             });
@@ -55,10 +55,10 @@ module.exports.resolve = function (splitURL, response) {
         db.getFilePath(splitURL[1], function (err, data) {
           if (err) {
             response.writeHead(404, {
-                'content-type': 'text/plain', 
+                'content-type': 'application/json', 
             });
 
-            response.end("File doesn't exist");
+            response.end(JSON.stringify({error: "File doesn't exist"}));
           } else { 
             helper.getFile(data, response); 
           }

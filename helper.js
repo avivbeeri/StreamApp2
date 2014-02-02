@@ -10,7 +10,7 @@ module.exports = {
 
   reportServerError : function (response, error) {
     response.writeHead(500);
-    response.end("Error Occurred, see console.");
+    response.end(JSON.stringify({error: "Error Occurred, see console."}));
     console.log(error);
   },
 

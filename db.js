@@ -57,7 +57,7 @@ Database.prototype.getFileTags = function (id, callback) {
     return;
   } 
   var results = new Array(); 
-  this.db.each("SELECT tag FROM tags WHERE id = ?", id , 
+  this.db.each("SELECT tag FROM tags WHERE id = ? ORDER BY tag ASC", id , 
   function (err, row) {
     if (err) {
       callback(err);
@@ -81,7 +81,7 @@ Database.prototype.getRecentFiles = function (callback) {
   } 
 
   var results = new Array(); 
-  this.db.each("SELECT id, title, artist FROM files WHERE (julianday('now') - julianday(dateAdded)) < 8;",[],
+  this.db.each("SELECT id, title, artist FROM files WHERE (julianday('now') - julianday(dateAdded)) < 8 ORDER BY dateAdded DESC",[],
   function (err, row) {
     if (err) {
       callback(err);
@@ -105,7 +105,7 @@ Database.prototype.getTagList = function (callback) {
     return;
   } 
   var results = new Array(); 
-  this.db.each("SELECT DISTINCT tag FROM tags",[],
+  this.db.each("SELECT DISTINCT tag FROM tags ORDER BY tag ASC",[],
   function (err, row) {
     if (err) {
       callback(err);
@@ -135,7 +135,7 @@ Database.prototype.getTagsFiles = function (tag, callback) {
   tag = tag.toUpperCase();
   tag = tag.replace(/_|%20/gi," ");
   tag = tag.replace(/\//gi,"%2F");
-  this.db.each("SELECT files.id, files.title, files.artist FROM tags JOIN files ON tags.id = files.id WHERE UPPER(tag) = ?", tag,
+  this.db.each("SELECT files.id, files.title, files.artist FROM tags JOIN files ON tags.id = files.id WHERE UPPER(tag) = ? ORDER BY files.title ASC", tag,
   function (err, row) {
     if (err) {
       callback(err);
