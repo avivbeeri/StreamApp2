@@ -21,6 +21,7 @@ var rl = readline.createInterface({
 var server = http.createServer(function(request, response) {
     //Set up socket responses.
 
+    console.log(JSON.stringify(request.headers));
     response.on("error", function (err) {
           
       helper.reportServerError(response, "Error: " + err);

@@ -1,7 +1,9 @@
 var fs = require('fs'),
     mv = require('mv'),
     db = require("./db.js"),
+    zlib = require('zlib');
     path = require('path'),
+    sanitize = require('./sanitize.js'),
     ffmetadata = require('ffmetadata');
 
 
@@ -10,7 +12,7 @@ module.exports = {
 
   reportServerError : function (response, error) {
     response.writeHead(500);
-    response.end(JSON.stringify({error: "Error Occurred, see console."}));
+    response.end(JSON.stringify({"error": error}));
     console.log(error);
   },
 
@@ -28,12 +30,15 @@ module.exports = {
       
       response.writeHead(200, {
           'content-type': 'audio/mpeg', 
-          'content-length': stat.size
+          'content-length': stat.size,
+          'content-encoding': 'gzip'
+
       });
       
       var readStream = fs.createReadStream(filePath);
+      var gzip = zlib.createGzip();
       // We replaced all the event handlers with a simple call to util.pump()
-      readStream.pipe(response);
+      readStream.pipe(gzip).pipe(response);
     });
   },
   
@@ -56,10 +61,11 @@ module.exports = {
           data.title = fileData.filename.substring(0, pos);
         }
         fileData.title = data.title;
-        fileData.artist = data.artist;
+        fileData.artist = sanitize(data.artist);
+        fileData.filename = path.basename(fileData.filename);
         tags.push(data.artist);
         console.log("File Data: " + JSON.stringify(fileData));
-        var dest = path.join(__dirname, "files", data.artist);
+        var dest = path.join(__dirname, "files", fileData.artist);
         var finalPath = dest + "/" + fileData.filename;
         mv(fileData.path, finalPath, {mkdirp: true}, function (err) {
           if (err) {
@@ -93,4 +99,5 @@ module.exports = {
       }
     });
   }
+  
 }

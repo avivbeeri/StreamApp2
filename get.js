@@ -29,7 +29,7 @@ module.exports.resolve = function (splitURL, response) {
             ffmetadata.read(url, function(err, data) {
 
               if (err) {
-                helper.reportServerError(response, "Error reading metadata" + err);
+                helper.reportServerError(response, "Error reading metadata: " + err);
               } else {
                 response.writeHead(200, {
                     'content-type': 'application/json', 
@@ -86,6 +86,34 @@ module.exports.resolve = function (splitURL, response) {
         });
       } else {
         db.getTagsFiles(splitURL[1], function (err, results) {
+          if (err) {
+            helper.reportServerError(response, err);
+            return;
+          }
+          var output = new Object();
+          output.result = results;
+          response.writeHead(200, {
+              'content-type': 'application/json', 
+          });
+          response.end(JSON.stringify(output));
+        });
+      }
+  } else if (splitURL[0] === "artists") {
+      if (splitURL.length == 1) {
+        db.getArtistList(function (err, results) { 
+          if (err) {
+            helper.reportServerError(response, err);
+            return;
+          }
+          var output = new Object();
+          output.result = results;
+          response.writeHead(200, {
+              'content-type': 'application/json', 
+          });
+          response.end(JSON.stringify(output));
+        });
+      } else {
+        db.getArtistsFiles(splitURL[1], function (err, results) {
           if (err) {
             helper.reportServerError(response, err);
             return;

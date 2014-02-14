@@ -10,7 +10,6 @@ module.exports.resolve = function (splitURL, request, response) {
     var form = new formidable.IncomingForm();
     form.hash = "md5";
     form.parse(request, function(err, fields, files) {
-        //console.log(files. 
         helper.storeFile({
           path: files.upload.path,
           filename: files.upload.name,
@@ -30,6 +29,7 @@ module.exports.resolve = function (splitURL, request, response) {
       console.log("File: " + file.name);
     });
   } else
+
   //Format /files/:fileid/tags/:tag 
   if (splitURL.length === 4) {
     var fileid = splitURL[1];

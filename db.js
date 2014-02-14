@@ -1,5 +1,6 @@
 var fs = require('fs'),
-    sqlite3 = require("sqlite3").verbose();
+    sqlite3 = require("sqlite3").verbose(),
+    sanitize = require('./sanitize.js');
 
 module.exports = new Database();
 
@@ -112,7 +113,32 @@ Database.prototype.getTagList = function (callback) {
     } else {
       var endTag = row.tag;
 
-      endTag = endTag.replace(/%2F/gi,"/");
+      results.push(endTag);
+    }
+  }, 
+  function (err, count) {
+    
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, results);  
+    } 
+  });
+}
+
+Database.prototype.getArtistList = function (callback) {
+  if (!this.db) {
+    callback("Not Connected");
+    return;
+  } 
+  var results = new Array(); 
+  this.db.each("SELECT DISTINCT artist FROM files ORDER BY artist ASC",[],
+  function (err, row) {
+    if (err) {
+      callback(err);
+    } else {
+      var endTag = row.artist;
+
       results.push(endTag);
     }
   }, 
@@ -131,11 +157,36 @@ Database.prototype.getTagsFiles = function (tag, callback) {
     callback("Not Connected");
     return;
   } 
-  var results = new Array(); 
+  var results = new Array();
+  tag = sanitize(tag); 
   tag = tag.toUpperCase();
-  tag = tag.replace(/_|%20/gi," ");
-  tag = tag.replace(/\//gi,"%2F");
   this.db.each("SELECT files.id, files.title, files.artist FROM tags JOIN files ON tags.id = files.id WHERE UPPER(tag) = ? ORDER BY files.title ASC", tag,
+  function (err, row) {
+    if (err) {
+      callback(err);
+    } else {
+      results.push(row);
+    }
+  }, 
+  function (err, count) {
+    
+    if (err) {
+      callback(err);
+    } else {
+      callback(null, results);  
+    } 
+  });
+}
+
+Database.prototype.getArtistsFiles = function (artist, callback) {
+  if (!this.db) {
+    callback("Not Connected");
+    return;
+  } 
+  var results = new Array();
+  artist = sanitize(artist); 
+  artist = artist.toUpperCase();
+  this.db.each("SELECT files.id, files.title FROM files WHERE UPPER(artist) = ? ORDER BY files.title ASC", artist,
   function (err, row) {
     if (err) {
       callback(err);
@@ -174,8 +225,7 @@ Database.prototype.addTagToFile = function (tag, fileid, callback) {
     callback("Error: Not Connected");
     return;
   }
-  tag = tag.replace(/_|%20/gi," ");
-  tag = tag.replace(/\//gi,"%2F");
+  tag = sanitize(tag); 
 
 
   this.db.run("INSERT INTO tags (tag, id) VALUES (?, ?)",
@@ -194,7 +244,7 @@ Database.prototype.removeTagFromFile = function (tag, fileid, callback) {
     return;
   }
   var db = this.db;
-  tag = tag.replace(/_|%20/gi," ");
+  tag = sanitize(tag); 
   tag = tag.toUpperCase();
   db.run("DELETE FROM tags WHERE UPPER(tag) = ? AND id = ?",
          [tag, fileid], function (err) {
