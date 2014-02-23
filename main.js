@@ -9,7 +9,7 @@ var http = require('http'),
     del = require('./delete.js'),
     post = require('./post.js');
 //Initialisation and Configuration
-var db = require("./db.js").connect("tags.db");
+var db = require("./db.js").connect("/home/pi/streamapp/tags.db");
 
 var rl = readline.createInterface({
     input: process.stdin,

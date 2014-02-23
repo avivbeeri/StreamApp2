@@ -1,0 +1,4 @@
+node_modules/
+files/
+tags.db
+out.log

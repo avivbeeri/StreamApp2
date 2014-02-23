@@ -6,7 +6,7 @@ var fs = require('fs'),
     sanitize = require('./sanitize.js'),
     ffmetadata = require('ffmetadata');
 
-
+var storagePath = "/home/pi/streamapp/files";
 
 module.exports = {
 
@@ -65,8 +65,8 @@ module.exports = {
         fileData.filename = path.basename(fileData.filename);
         tags.push(data.artist);
         console.log("File Data: " + JSON.stringify(fileData));
-        var dest = path.join(__dirname, "files", fileData.artist);
-        var finalPath = dest + "/" + fileData.filename;
+        var dest = path.join(storagePath, fileData.artist);
+        var finalPath = path.join(dest, fileData.filename);
         mv(fileData.path, finalPath, {mkdirp: true}, function (err) {
           if (err) {
             console.error("mv: " + err);
