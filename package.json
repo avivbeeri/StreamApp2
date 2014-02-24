@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "description": "A REST backend for a media management and streaming server",
   "main": "main.js",
+  "repository" : { 
+    "type" : "git", 
+    "url" : "https://github.com/avivbeeri/StreamApp2.git"
+  },
   "dependencies": {
     "ffmetadata": "~1.0.2",
     "sqlite3": "~2.2.0",
