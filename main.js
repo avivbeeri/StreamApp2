@@ -36,7 +36,7 @@ var server = http.createServer(function(request, response) {
     var dirname = path.dirname(reqURL); 
     console.log(request.method + " requesting: " + splitURL);
     if (request.method === "GET") {
-      get.resolve(splitURL, response);
+      get.resolve(splitURL, request, response);
     } else if (request.method === "POST") {
       post.resolve(splitURL, request, response);
     } else if (request.method === "PUT") {

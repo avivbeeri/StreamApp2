@@ -1,10 +1,12 @@
 var fs = require('fs'),
     mv = require('mv'),
     db = require("./db.js"),
-    zlib = require('zlib');
+    zlib = require('zlib'),
     path = require('path'),
     sanitize = require('./sanitize.js'),
-    ffmetadata = require('ffmetadata');
+    ffmetadata = require('ffmetadata'),
+    mime = require('mime');
+    
 
 var storagePath = "/home/pi/streamapp/files";
 
@@ -18,27 +20,33 @@ module.exports = {
 
   getFile : function (filePath, response) {
     
-    var stat = fs.statSync(filePath);
-    fs.exists(filePath, function (exists) {
+    fs.stat(filePath, function (err, stat) {
+	fs.exists(filePath, function (exists) {
 
-      if (!exists) {
-        response.writeHead(404);
-        response.end("Error");
-        return;
-      }
-
-      
-      response.writeHead(200, {
-          'content-type': 'audio/mpeg', 
-          'content-length': stat.size,
-          'content-encoding': 'gzip'
-
-      });
-      
-      var readStream = fs.createReadStream(filePath);
-      var gzip = zlib.createGzip();
-      // We replaced all the event handlers with a simple call to util.pump()
-      readStream.pipe(gzip).pipe(response);
+	  if (!exists) {
+	    response.writeHead(404);
+	    response.end("Error");
+	    return;
+	  }
+          console.log(filePath);
+	  response.writeHead(206, {
+	      'Content-Type': mime.lookup(filePath), 
+	      'Content-Encoding': 'gzip',
+	      'Transfer-Encoding': 'chunked',
+              'Connection': 'close',
+              'Content-Length': stat.size,
+              'Content-Disposition': 'filename="' + path.basename(filePath)+'"'
+	  });
+	  
+          var readStream = fs.createReadStream(filePath);
+	  var gzip = zlib.createGzip();
+	  // We replaced all the event handlers with a simple call to util.pump()
+	  readStream.pipe(gzip).pipe(response);
+          readStream.on('end', function () {
+            response.write('0', 'binary');
+            response.end();
+          });
+	});
     });
   },
   

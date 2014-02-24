@@ -1,8 +1,10 @@
 var db = require("./db.js"),
+    fs = require('fs'),
     ffmetadata = require('ffmetadata'),
     helper = require('./helper.js');
+var parse = require('range-parser');
 
-module.exports.resolve = function (splitURL, response) {
+module.exports.resolve = function (splitURL, request, response) {
   if (splitURL[0] === "files") {
     if (splitURL[1]) {
 
@@ -60,6 +62,7 @@ module.exports.resolve = function (splitURL, response) {
 
             response.end(JSON.stringify({error: "File doesn't exist"}));
           } else { 
+            console.log("Getting file");
             helper.getFile(data, response); 
           }
         });
