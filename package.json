@@ -7,7 +7,8 @@
     "ffmetadata": "~1.0.2",
     "sqlite3": "~2.2.0",
     "mv": "~1.0.0",
-    "formidable": "~1.0.14"
+    "formidable": "~1.0.14",
+    "mime": "~1.2.11"
   },
   "devDependencies": {},
   "scripts": {
