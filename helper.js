@@ -14,7 +14,7 @@ try {
 
     
 
-var storagePath = config.mediaDir || "./files";
+var storagePath = config.mediaDir || path.join(__dirname, "files");
 
 module.exports = {
 
