@@ -2,3 +2,5 @@ node_modules/
 files/
 tags.db
 out.log
+forever.log
+err.log
