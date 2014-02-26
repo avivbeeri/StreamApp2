@@ -2,19 +2,15 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 var url = require('url');
-var readline = require('readline');
 var router = require('restroute');
-var db = require("./db.js").connect("/home/pi/streamapp/tags.db");
+var config = require('./config.js');
+var db = require("./db.js").connect(config.dbPath || "./tags.db");
 var helper = require('./helper.js');
 var get = require('./get.js');
 //var put = require('./put.js');
 var del = require('./delete.js');
 var post = require('./post.js');
- //Initialisation and Configuration
-var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
+
 
 router.onError(function (req, res) {
   helper.reportServerError(res, "Invalid endpoint");
@@ -60,10 +56,12 @@ var server = http.createServer(function(request, response) {
 server.listen(2000);
 
 //Allow program to quit gracefully
-rl.question("Press any key to exit.\n", function(answer) {
+process.on("SIGTERM", function() {
   server.close();
   db.close();
-  
-  rl.close();
-  process.exit(0);
+});
+
+process.on("SIGINT", function() {
+  server.close();
+  db.close();
 });

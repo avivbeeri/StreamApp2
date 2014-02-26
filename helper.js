@@ -6,9 +6,12 @@ var fs = require('fs'),
     sanitize = require('./sanitize.js'),
     ffmetadata = require('ffmetadata'),
     mime = require('mime');
+var config = require('./config.js');
+
+
     
 
-var storagePath = "/home/pi/streamapp/files";
+var storagePath = config.mediaDir || "./files";
 
 module.exports = {
 
