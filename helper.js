@@ -6,7 +6,10 @@ var fs = require('fs'),
     sanitize = require('./sanitize.js'),
     ffmetadata = require('ffmetadata'),
     mime = require('mime');
-var config = require('./config.js');
+var config = {};
+try {
+  config = require('./config.js');
+} catch (err) {}
 
 
     
