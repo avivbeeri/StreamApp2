@@ -1,14 +1,13 @@
-var db = require("./db.js");
-var helper = require("./helper.js");
-var util = require('util');
-var fs = require('fs');
-var path = require('path');
+module.exports = function () {
+  var db = require("./db.js");
+  var helper = require("./helper.js");
+  var util = require('util');
+  var fs = require('fs');
+  var path = require('path');
+  var router = require('restroute');
 
-module.exports.resolve = function (splitURL, request, response) {
-  
-  //Format /files/:fileid 
-  if (splitURL.length === 2) {
-    var fileid = splitURL[1];
+  router.delete("/files/:id", function (request, response) {
+    var fileid = request.params.id;
     console.log("Removing from database...");
     db.removeFile(fileid, function (err, path) {
       if (err) {
@@ -30,12 +29,12 @@ module.exports.resolve = function (splitURL, request, response) {
       });
       
     });
-    return;
-  } else
-  //Format /files/:fileid/tags/:tag 
-  if (splitURL.length === 4) {
-    var fileid = splitURL[1];
-    var tag = splitURL[3];
+
+  });
+
+  router.delete("/files/:id/tags/:tag", function(request, response) {
+    var fileid = request.params.id;
+    var tag = request.params.tag;
 
     db.removeTagFromFile(tag, fileid, function (err) {
       if (err) {
@@ -45,8 +44,5 @@ module.exports.resolve = function (splitURL, request, response) {
       response.writeHead(204);
       response.end(); 
     });
-  } else {
-    helper.reportServerError(response, "Invalid endpoint");
-  }
-
+  });
 }

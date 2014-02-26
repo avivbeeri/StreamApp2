@@ -12,7 +12,8 @@
     "sqlite3": "~2.2.0",
     "mv": "~1.0.0",
     "formidable": "~1.0.14",
-    "mime": "~1.2.11"
+    "mime": "~1.2.11",
+    "restroute": "~0.0.1"
   },
   "devDependencies": {},
   "scripts": {

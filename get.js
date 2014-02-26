@@ -1,147 +1,151 @@
-var db = require("./db.js"),
-    fs = require('fs'),
-    ffmetadata = require('ffmetadata'),
-    helper = require('./helper.js');
-var parse = require('range-parser');
 
-module.exports.resolve = function (splitURL, request, response) {
-  if (splitURL[0] === "files") {
-    if (splitURL[1]) {
+module.exports = function() {
+  var router = require('restroute');
+  var fs = require('fs');
+  var ffmetadata = require('ffmetadata');
+  var db = require("./db.js");
+  var helper = require('./helper.js');
+  
+  router.get("/files/recent", function (req, res) {
+    db.getRecentFiles(function(err, results) {
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+  });
 
-      if (splitURL[2] && splitURL[2] === "tags") {
-        db.getFileTags(splitURL[1], function (err, results) {
-          if (err) {
-            helper.reportServerError(response, err);
-            return;
-          }
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
+  router.get("/files/:id", function (req, res) {
+    db.getFilePath(req.params.id, function (err, data) {
+      if (err) {
+        res.writeHead(404, {
+            'content-type': 'application/json', 
         });
 
-      } else if (splitURL[2] && splitURL[2] === "id3") {
-        console.log("getting id3 tags");
-        db.getFilePath(splitURL[1], function (err, url) {
+        res.end(JSON.stringify({error: "File doesn't exist"}));
+      } else { 
+        console.log("Getting file");
+        helper.getFile(data, res); 
+      }
+    });
+
+  });
+
+  router.get("/files/:id/tags/", function (req, res) {
+    db.getFileTags(req.params.id, function (err, results) {
+      if (err) {
+        helper.reportServerError(res, err);
+        return;
+      }
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+
+  });
+
+  router.get("/files/:id/id3", function (req, res) {
+    console.log("getting id3 tags");
+    db.getFilePath(req.params.id, function (err, url) {
+      if (err) {
+        console.error(err);
+      } else { 
+        ffmetadata.read(url, function(err, data) {
+
           if (err) {
-            console.error(err);
-          } else { 
-            ffmetadata.read(url, function(err, data) {
-
-              if (err) {
-                helper.reportServerError(response, "Error reading metadata: " + err);
-              } else {
-                response.writeHead(200, {
-                    'content-type': 'application/json', 
-                });
-
-                response.end(JSON.stringify({result : data}));
-
-              }
-            });
-
-          }
-        });
-      } else if (splitURL[1] === "recent") {
-        db.getRecentFiles(function(err, results) {
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
-        });
-      } else if (splitURL[1]) {
-        db.getFilePath(splitURL[1], function (err, data) {
-          if (err) {
-            response.writeHead(404, {
+            helper.reportServerError(res, "Error reading metadata: " + err);
+          } else {
+            res.writeHead(200, {
                 'content-type': 'application/json', 
             });
 
-            response.end(JSON.stringify({error: "File doesn't exist"}));
-          } else { 
-            console.log("Getting file");
-            helper.getFile(data, response); 
+            res.end(JSON.stringify({result : data}));
+
           }
         });
-      } else {
-        helper.reportServerError(response, "Invalid endpoint");
+
       }
-    } else {
-      helper.reportServerError(response, "Invalid endpoint");
-      
-    }
-  } else if (splitURL[0] === "tags") {
-      if (splitURL.length == 1) {
-        db.getTagList(function (err, results) { 
-          if (err) {
-            helper.reportServerError(response, err);
-            return;
-          }
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
-        });
-      } else {
-        db.getTagsFiles(splitURL[1], function (err, results) {
-          if (err) {
-            helper.reportServerError(response, err);
-            return;
-          }
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
-        });
+    });
+  });
+
+  router.get("/tags", function (req, res) {
+    db.getTagList(function (err, results) { 
+      if (err) {
+        helper.reportServerError(res, err);
+        return;
       }
-  } else if (splitURL[0] === "artists") {
-      if (splitURL.length == 1) {
-        db.getArtistList(function (err, results) { 
-          if (err) {
-            helper.reportServerError(response, err);
-            return;
-          }
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
-        });
-      } else {
-        db.getArtistsFiles(splitURL[1], function (err, results) {
-          if (err) {
-            helper.reportServerError(response, err);
-            return;
-          }
-          var output = new Object();
-          output.result = results;
-          response.writeHead(200, {
-              'content-type': 'application/json', 
-          });
-          response.end(JSON.stringify(output));
-        });
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+  });
+
+  router.get("/tags/:tag", function (req, res) {
+    db.getTagsFiles(req.params.tag, function (err, results) {
+      if (err) {
+        helper.reportServerError(res, err);
+        return;
       }
-  } else if (splitURL[0] === "upload") {
-      
-   // show a file upload form
-    response.writeHead(200, {'content-type': 'text/html'});
-    response.end(
-      '<form action="/files" enctype="multipart/form-data" method="post">'+
-      '<input type="text" name="title"><br>'+
-      '<input type="file" name="upload" multiple="multiple"><br>'+
-      '<input type="submit" value="Upload">'+
-      '</form>'
-    ); 
-  } else {
-    helper.reportServerError(response, "Invalid endpoint");
-  }
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+
+  });
+
+  router.get("/artists", function (req, res) {
+    db.getArtistList(function (err, results) { 
+      if (err) {
+        helper.reportServerError(res, err);
+        return;
+      }
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+  });
+
+  router.get("/artists/:artist", function (req, res) {
+    db.getArtistsFiles(req.params.artist, function (err, results) {
+      if (err) {
+        helper.reportServerError(res, err);
+        return;
+      }
+      var output = new Object();
+      output.result = results;
+      res.writeHead(200, {
+          'content-type': 'application/json', 
+      });
+      res.end(JSON.stringify(output));
+    });
+
+  });
+
+  router.get("/upload", function(req, res) {
+     // show a file upload form
+      res.writeHead(200, {'content-type': 'text/html'});
+      res.end(
+        '<form action="/files" enctype="multipart/form-data" method="post">'+
+        '<input type="text" name="title"><br>'+
+        '<input type="file" name="upload" multiple="multiple"><br>'+
+        '<input type="submit" value="Upload">'+
+        '</form>'
+      ); 
+
+  });
 
 }
