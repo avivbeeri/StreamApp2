@@ -3,9 +3,9 @@
   "version": "0.0.1",
   "description": "A REST backend for a media management and streaming server",
   "main": "main.js",
-  "repository" : { 
-    "type" : "git", 
-    "url" : "https://github.com/avivbeeri/StreamApp2.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avivbeeri/StreamApp2.git"
   },
   "dependencies": {
     "ffmetadata": "~1.0.2",
@@ -13,7 +13,8 @@
     "mv": "~1.0.0",
     "formidable": "~1.0.14",
     "mime": "~1.2.11",
-    "restroute": "~0.0.1"
+    "restroute": "~0.0.2",
+    "reminder": "~0.1.1"
   },
   "devDependencies": {},
   "scripts": {

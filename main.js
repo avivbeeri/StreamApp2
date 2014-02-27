@@ -16,6 +16,7 @@ var get = require('./get.js');
 var del = require('./delete.js');
 var post = require('./post.js');
 
+require('./shutdown.js');
 
 router.onError(function (req, res) {
   helper.reportServerError(res, "Invalid endpoint");
