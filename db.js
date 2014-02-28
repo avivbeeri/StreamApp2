@@ -53,6 +53,28 @@ Database.prototype.getFilePath = function (id, callback) {
   }
 }
 
+Database.prototype.getFileData = function (id, callback) {
+  if (!this.db) {
+    callback("Not Connected");
+  }
+  try {
+    this.db.get("SELECT id, title, artist FROM files WHERE id = ?",id , function (err, row) {
+      if (err) {
+        callback(err);
+        return;
+      }
+      if (row === undefined) {
+        callback("Error: No rows returned.");
+        return;
+      }
+      callback(null, row);
+      
+    });
+  } catch (err) {
+    callback(err);
+  }
+}
+
 Database.prototype.getFileTags = function (id, callback) {
   if (!this.db) {
     callback("Not Connected");

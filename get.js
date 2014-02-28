@@ -16,8 +16,32 @@ module.exports = function() {
       res.end(JSON.stringify(output));
     });
   });
-
+  
   router.get("/files/:id", function (req, res) {
+    db.getFileData(req.params.id, function (err, data) {
+      if (err) {
+        res.writeHead(404, {
+            'content-type': 'application/json', 
+        });
+
+        res.end(JSON.stringify({error: "File doesn't exist"}));
+      } else { 
+        if (err) {
+          helper.reportServerError(res, "Error reading file: " + err);
+        } else {
+          res.writeHead(200, {
+              'content-type': 'application/json', 
+          });
+
+          res.end(JSON.stringify({result : data}));
+
+        }
+      }
+    });
+
+  });
+
+  router.get("/files/:id/download", function (req, res) {
     db.getFilePath(req.params.id, function (err, data) {
       if (err) {
         res.writeHead(404, {
